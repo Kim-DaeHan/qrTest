@@ -2,6 +2,7 @@ import http from "http";
 import { WebSocketServer } from "ws";
 import CryptoJS from "crypto-js";
 import jwt from "jsonwebtoken";
+import { error } from "console";
 
 function decrypt(encryptedText, key) {
   const bytes = CryptoJS.AES.decrypt(encryptedText, key);
@@ -27,7 +28,8 @@ const secretKey =
 const message = "Welcome to DAPP!!";
 
 // 소켓 서버 초기화 함수
-function initializeSocketServer() {
+async function initializeSocketServer() {
+  //   return new Promise((resolve, reject) => {
   // HTTP 서버 생성
   const server = http.createServer();
 
@@ -37,6 +39,8 @@ function initializeSocketServer() {
   // 연결된 클라이언트들을 저장할 배열
   const clients = [];
 
+  let token;
+
   // 연결 이벤트 리스너
   wss.on("connection", (ws, req) => {
     console.log("Client connected");
@@ -45,9 +49,14 @@ function initializeSocketServer() {
 
     // 세션 키 검증
     if (clientSessionKey !== sessionKey) {
-      console.log("Invalid session key");
+      // console.log("Invalid session key");
       ws.close(); // 잘못된 세션 키인 경우 연결 종료
-      return;
+      server.close(() => {
+        console.log("Socket server closed");
+        // Promise 완료
+        // reject("Invalid session key");
+        throw new Error("Invalid session key");
+      });
     }
 
     // 세션 키가 유효한 경우 클라이언트를 배열에 추가
@@ -57,7 +66,7 @@ function initializeSocketServer() {
     ws.on("message", (msg) => {
       const decryptMsg = decrypt(msg.toString(), secretKey);
       if (decryptMsg.length === 44) {
-        const token = createToken(decryptMsg, sessionKey);
+        token = createToken(decryptMsg, sessionKey);
         console.log("token: ", token);
         const encryptToken = encrypt(token, secretKey);
         ws.send(encryptToken);
@@ -73,6 +82,13 @@ function initializeSocketServer() {
         if (decryptMsg === hash) {
           console.log("로그인 완료");
           ws.close();
+          // 소켓 서버 종료
+          server.close(() => {
+            console.log("Socket server closed");
+            // Promise 완료
+            // resolve(token);
+            return token;
+          });
         }
       }
     });
@@ -93,7 +109,18 @@ function initializeSocketServer() {
   server.listen(PORT, () => {
     console.log(`Socket server listening on port ${PORT}`);
   });
+  //   });
 }
 
-// 소켓 서버 초기화 함수 호출
-initializeSocketServer();
+async function main() {
+  // 소켓 서버 초기화 함수 호출
+  try {
+    const token = await initializeSocketServer();
+
+    console.log("token123 : ", token);
+  } catch (error) {
+    console.error("에러다: ", error);
+  }
+}
+
+main();
