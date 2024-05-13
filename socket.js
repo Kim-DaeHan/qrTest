@@ -24,10 +24,8 @@ const sessionKey = "103a4081d986d570e28e1bc35d53cc93";
 const secretKey =
   "0ff85630d16c9ffd03ae8d8ab92fda302994e24e2801fb99431bdf13ce5160ab";
 
-const message = "Welcome to DAPP!!";
-
 // 소켓 서버 초기화 함수
-function initializeSocketServer() {
+function walletLogin(message) {
   // return new Promise는 언제 resolve를 할지 정할 수 있고 async를 사용하면 함수 끝까지 실행이되고 resolve를 한다
   // async는 await를 사용하기 위함이 가장 크고 resolve를 handler를 하기 위해선 return new Promise를 명시적으로
   return new Promise((resolve, reject) => {
@@ -69,18 +67,17 @@ function initializeSocketServer() {
         const decryptMsg = decrypt(msg.toString(), secretKey);
         if (decryptMsg.length === 44) {
           token = createToken(decryptMsg, sessionKey);
-          console.log("token: ", token);
-          const encryptToken = encrypt(token, secretKey);
-          ws.send(encryptToken);
-        } else if (decryptMsg === "sign") {
-          console.log("sign 요청");
+          // const encryptToken = encrypt(token, secretKey);
+          // ws.send(encryptToken);
           ws.send(encrypt(message, secretKey));
+          // } else if (decryptMsg === "sign") {
+          //   console.log("sign 요청");
+          //   ws.send(encrypt(message, secretKey));
         } else if (decryptMsg.length === 64) {
           console.log("Received message:", decryptMsg);
           const hash = CryptoJS.SHA256(message + "zigap").toString(
             CryptoJS.enc.Hex
           );
-          console.log("hash: ", hash);
           if (decryptMsg === hash) {
             console.log("로그인 완료");
             ws.close();
@@ -137,7 +134,7 @@ function initializeSocketServer() {
 async function main() {
   // 소켓 서버 초기화 함수 호출
   try {
-    const token = await initializeSocketServer();
+    const token = await walletLogin("Welcome to DAPP!!");
 
     // 5초를 기다리기 위한 Promise를 생성
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
