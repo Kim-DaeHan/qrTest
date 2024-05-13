@@ -2,7 +2,6 @@ import http from "http";
 import { WebSocketServer } from "ws";
 import CryptoJS from "crypto-js";
 import jwt from "jsonwebtoken";
-import { error } from "console";
 
 function decrypt(encryptedText, key) {
   const bytes = CryptoJS.AES.decrypt(encryptedText, key);
