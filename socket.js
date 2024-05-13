@@ -27,7 +27,7 @@ const secretKey =
 const message = "Welcome to DAPP!!";
 
 // 소켓 서버 초기화 함수
-async function initializeSocketServer() {
+function initializeSocketServer() {
   // return new Promise는 언제 resolve를 할지 정할 수 있고 async를 사용하면 함수 끝까지 실행이되고 resolve를 한다
   // async는 await를 사용하기 위함이 가장 크고 resolve를 handler를 하기 위해선 return new Promise를 명시적으로
   return new Promise((resolve, reject) => {
