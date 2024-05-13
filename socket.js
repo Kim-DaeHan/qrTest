@@ -86,27 +86,39 @@ function initializeSocketServer() {
             ws.close();
             // 소켓 서버 종료
             server.close(() => {
-              console.log("Socket server closed111");
+              console.log("Socket server closed");
               // Promise 완료
               resolve(token);
               // return token;
             });
+          } else {
+            ws.close();
+            // 소켓 서버 종료
+            server.close(() => {
+              console.log("Socket server closed");
+              reject("Failed to sign");
+            });
           }
+        } else {
+          ws.close();
+          // 소켓 서버 종료
+          server.close(() => {
+            console.log("Socket server closed");
+            reject("Invalid message");
+          });
         }
       });
 
       // 연결 종료 이벤트 처리
       ws.on("close", () => {
-        // console.log("Client disconnected");
         // 배열에서 연결이 종료된 클라이언트 제거
         const index = clients.indexOf(ws);
         if (index !== -1) {
           clients.splice(index, 1);
         }
         server.close(() => {
-          console.log("Socket server closed222");
-          reject("Client disconnected22");
-          // throw new Error("Invalid session key");
+          console.log("Socket server closed");
+          reject("Client disconnected");
         });
       });
     });
@@ -127,31 +139,16 @@ async function main() {
   try {
     const token = await initializeSocketServer();
 
-    // const token = "aaa";
     // 5초를 기다리기 위한 Promise를 생성
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     // 5초를 기다림
     await wait(5000);
 
-    console.log("token123 : ", token);
-    console.log("token123 : ", token);
-    console.log("token123 : ", token);
-    console.log("token123 : ", token);
+    console.log("token : ", token);
   } catch (error) {
     console.error("에러다: ", error);
   }
 }
 
 main();
-// async function test() {
-//   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-//   // 5초를 기다림
-//   await wait(5000);
-//   return 42;
-// }
-
-// console.log("bbb");
-// const testaa = await test();
-// console.log("aaaaaaaaa", testaa);
