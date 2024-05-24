@@ -33,9 +33,14 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("message", (roomId, message) => {
-    io.to(roomId).emit("message", message);
-    console.log(`Message sent to room ${roomId}: ${message}`);
+  socket.on("requestMessage", (roomId, message) => {
+    io.to(roomId).emit("requestMessage", message);
+    console.log(`requestMessage sent to room ${roomId}: ${message}`);
+  });
+
+  socket.on("sendMessage", (roomId, message) => {
+    io.to(roomId).emit("sendMessage", message);
+    console.log(`sendMessage sent to room ${roomId}: ${message}`);
   });
 
   socket.on("cryptoInfo", (roomId, message) => {
@@ -43,18 +48,6 @@ io.on("connection", (socket) => {
       `Received walletPublicKey for room ${roomId}: ${JSON.stringify(message)}`
     );
     io.to(roomId).emit("cryptoInfo", message);
-  });
-
-  socket.on("verify", (roomId, message) => {
-    console.log(
-      `Received verify for room ${roomId}: ${JSON.stringify(message)}`
-    );
-    io.to(roomId).emit("verify", message);
-  });
-
-  socket.on("encryptedMessage", (roomId, message) => {
-    console.log(`Received encryptedMessage for room ${roomId}: ${message}`);
-    io.to(roomId).emit("encryptedMessage", message);
   });
 
   socket.on("disconnect", () => {
