@@ -1,10 +1,19 @@
 import http from "http";
 import express from "express";
 import { Server } from "socket.io";
+import cors from "cors";
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  },
+});
+
+app.use(cors({ origin: "*" }));
 
 io.on("connection", (socket) => {
   console.log("a user connected:", socket.id);
@@ -14,9 +23,38 @@ io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} joined room ${roomId}`);
   });
 
-  socket.on("messageToRoom", ({ roomId, message }) => {
+  socket.on("leaveRoom", (roomId) => {
+    socket.leave(roomId);
+    console.log(`user left room ${roomId}`);
+
+    // 방이 비어 있는지 확인하고 비어 있으면 자동으로 삭제됨
+    if (io.sockets.adapter.rooms.get(roomId) === undefined) {
+      console.log(`Room ${roomId} is empty and will be destroyed`);
+    }
+  });
+
+  socket.on("message", (roomId, message) => {
     io.to(roomId).emit("message", message);
     console.log(`Message sent to room ${roomId}: ${message}`);
+  });
+
+  socket.on("cryptoInfo", (roomId, message) => {
+    console.log(
+      `Received walletPublicKey for room ${roomId}: ${JSON.stringify(message)}`
+    );
+    io.to(roomId).emit("cryptoInfo", message);
+  });
+
+  socket.on("verify", (roomId, message) => {
+    console.log(
+      `Received verify for room ${roomId}: ${JSON.stringify(message)}`
+    );
+    io.to(roomId).emit("verify", message);
+  });
+
+  socket.on("encryptedMessage", (roomId, message) => {
+    console.log(`Received encryptedMessage for room ${roomId}: ${message}`);
+    io.to(roomId).emit("encryptedMessage", message);
   });
 
   socket.on("disconnect", () => {
